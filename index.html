@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OS Problems Simulator — IT22401</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========================= HEADER ========================= -->
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo-badge">IT22401</div>
+      <div>
+        <h1>OS <span>Problems</span> Simulator</h1>
+        <div class="subtitle">Sri Venkateswara College of Engineering · Operating System Concepts · B.Tech IT 2022</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('cpu')">⚙ CPU Scheduling</button>
+      <button class="tab-btn" onclick="showTab('page')">📄 Page Replacement</button>
+      <button class="tab-btn" onclick="showTab('disk')">💿 Disk Scheduling</button>
+      <button class="tab-btn" onclick="showTab('banker')">🔒 Banker's Algorithm</button>
+      <button class="tab-btn" onclick="showTab('memory')">🧠 Memory Allocation</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ========================= CPU SCHEDULING ========================= -->
+<div id="tab-cpu" class="panel active">
+  <div class="container">
+    <div class="section-header">CPU Scheduling</div>
+    <div class="section-desc">Simulate FCFS, SJF (Non-preemptive), SRTF (Preemptive SJF), Round Robin, and Priority Scheduling algorithms. Enter processes, select algorithm, and visualize the Gantt chart with metrics.</div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Algorithm Selection</div>
+      <div class="algo-selector">
+        <button class="algo-btn selected" onclick="selectCPUAlgo(this,'fcfs')">FCFS</button>
+        <button class="algo-btn" onclick="selectCPUAlgo(this,'sjf')">SJF (Non-Preemptive)</button>
+        <button class="algo-btn" onclick="selectCPUAlgo(this,'srtf')">SRTF (Preemptive)</button>
+        <button class="algo-btn" onclick="selectCPUAlgo(this,'rr')">Round Robin</button>
+        <button class="algo-btn" onclick="selectCPUAlgo(this,'priority')">Priority (Non-Preemptive)</button>
+        <button class="algo-btn" onclick="selectCPUAlgo(this,'priority_p')">Priority (Preemptive)</button>
+      </div>
+      <div id="rr-quantum-wrap" style="display:none; max-width:200px;">
+        <label>TIME QUANTUM</label>
+        <input type="number" id="rr-quantum" value="2" min="1">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Process Table</div>
+      <div class="info-box">Add processes with Arrival Time (AT), Burst Time (BT), and Priority (lower = higher priority). Priority column only used for Priority Scheduling.</div>
+      <div class="process-table-wrap">
+        <table id="cpu-table">
+          <thead>
+            <tr>
+              <th>PROCESS</th>
+              <th>ARRIVAL TIME</th>
+              <th>BURST TIME</th>
+              <th id="priority-col-header" style="display:none;">PRIORITY</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="cpu-tbody"></tbody>
+        </table>
+      </div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-sm" onclick="addCPURow()">+ ADD PROCESS</button>
+        <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);" onclick="loadCPUExample()">LOAD EXAMPLE</button>
+        <button class="btn" onclick="runCPU()">▶ SIMULATE</button>
+      </div>
+    </div>
+
+    <div class="card" id="cpu-results" style="display:none;">
+      <div class="card-title"><span class="dot"></span>Gantt Chart</div>
+      <div class="gantt-wrap">
+        <div class="gantt-chart" id="cpu-gantt"></div>
+        <div class="gantt-times" id="cpu-times" style="display:flex; gap:0; padding-top:4px;"></div>
+      </div>
+      <hr class="divider">
+      <div class="results-section">
+        <h3>PROCESS METRICS</h3>
+        <div class="process-table-wrap">
+          <table id="cpu-metrics-table">
+            <thead>
+              <tr><th>PROCESS</th><th>AT</th><th>BT</th><th>CT</th><th>TAT</th><th>WT</th><th>RT</th></tr>
+            </thead>
+            <tbody id="cpu-metrics-body"></tbody>
+          </table>
+        </div>
+        <div class="metric-row" id="cpu-avg-metrics"></div>
+      </div>
+      <div class="steps-log" id="cpu-steps"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= PAGE REPLACEMENT ========================= -->
+<div id="tab-page" class="panel">
+  <div class="container">
+    <div class="section-header">Page Replacement</div>
+    <div class="section-desc">Simulate FIFO, LRU, and Optimal page replacement algorithms. Enter a page reference string and number of frames to visualize page faults and hits.</div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Algorithm & Input</div>
+      <div class="algo-selector">
+        <button class="algo-btn selected" onclick="selectPageAlgo(this,'fifo')">FIFO</button>
+        <button class="algo-btn" onclick="selectPageAlgo(this,'lru')">LRU</button>
+        <button class="algo-btn" onclick="selectPageAlgo(this,'optimal')">Optimal</button>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label>PAGE REFERENCE STRING (space/comma separated)</label>
+          <input type="text" id="page-string" placeholder="e.g. 7 0 1 2 0 3 0 4 2 3 0 3 2" value="7 0 1 2 0 3 0 4 2 3 0 3 2">
+        </div>
+        <div>
+          <label>NUMBER OF FRAMES</label>
+          <input type="number" id="page-frames" value="3" min="1" max="10">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="runPage()">▶ SIMULATE</button>
+        <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);" onclick="loadPageExample()">LOAD EXAMPLE</button>
+      </div>
+    </div>
+
+    <div class="card" id="page-results" style="display:none;">
+      <div class="card-title"><span class="dot"></span>Step-by-Step Simulation</div>
+      <div class="metric-row" style="margin-bottom:16px;" id="page-metrics"></div>
+      <div style="overflow-x:auto;">
+        <table class="pr-step-table" id="page-step-table"></table>
+      </div>
+      <div class="steps-log" id="page-steps"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= DISK SCHEDULING ========================= -->
+<div id="tab-disk" class="panel">
+  <div class="container">
+    <div class="section-header">Disk Scheduling</div>
+    <div class="section-desc">Simulate FCFS, SSTF, SCAN, C-SCAN, and LOOK disk scheduling algorithms. Visualize the head movement and total seek time.</div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Algorithm & Input</div>
+      <div class="algo-selector">
+        <button class="algo-btn selected" onclick="selectDiskAlgo(this,'fcfs')">FCFS</button>
+        <button class="algo-btn" onclick="selectDiskAlgo(this,'sstf')">SSTF</button>
+        <button class="algo-btn" onclick="selectDiskAlgo(this,'scan')">SCAN</button>
+        <button class="algo-btn" onclick="selectDiskAlgo(this,'cscan')">C-SCAN</button>
+        <button class="algo-btn" onclick="selectDiskAlgo(this,'look')">LOOK</button>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label>DISK REQUEST QUEUE (space/comma separated)</label>
+          <input type="text" id="disk-queue" value="98 183 37 122 14 124 65 67">
+        </div>
+        <div>
+          <label>INITIAL HEAD POSITION</label>
+          <input type="number" id="disk-head" value="53" min="0">
+        </div>
+        <div>
+          <label>DISK SIZE (cylinders)</label>
+          <input type="number" id="disk-size" value="200" min="10">
+        </div>
+        <div id="disk-dir-wrap">
+          <label>DIRECTION (for SCAN/LOOK)</label>
+          <select id="disk-dir">
+            <option value="right">Right (Increasing)</option>
+            <option value="left">Left (Decreasing)</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="runDisk()">▶ SIMULATE</button>
+        <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);" onclick="loadDiskExample()">LOAD EXAMPLE</button>
+      </div>
+    </div>
+
+    <div class="card" id="disk-results" style="display:none;">
+      <div class="card-title"><span class="dot"></span>Head Movement Visualization</div>
+      <canvas id="disk-canvas" width="900" height="220" style="width:100%; border:1px solid var(--border); background:var(--surface2);"></canvas>
+      <div class="metric-row" id="disk-metrics" style="margin-top:16px;"></div>
+      <div class="steps-log" id="disk-steps"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= BANKER'S ALGORITHM ========================= -->
+<div id="tab-banker" class="panel">
+  <div class="container">
+    <div class="section-header">Banker's Algorithm</div>
+    <div class="section-desc">Deadlock Avoidance using Banker's Algorithm. Enter the Allocation, Maximum, and Available matrices to find if the system is in a safe state and find the safe sequence.</div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>System Configuration</div>
+      <div class="form-grid">
+        <div>
+          <label>NUMBER OF PROCESSES</label>
+          <input type="number" id="bnk-procs" value="5" min="1" max="10" onchange="buildBankerTable()">
+        </div>
+        <div>
+          <label>NUMBER OF RESOURCE TYPES</label>
+          <input type="number" id="bnk-res" value="3" min="1" max="6" onchange="buildBankerTable()">
+        </div>
+      </div>
+      <button class="btn btn-sm" style="margin-bottom:20px;" onclick="buildBankerTable()">BUILD TABLE</button>
+      <button class="btn btn-sm btn-purple" style="margin-bottom:20px; margin-left:8px;" onclick="loadBankerExample()">LOAD EXAMPLE</button>
+
+      <div id="banker-tables"></div>
+
+      <div style="margin-top:20px;">
+        <label>AVAILABLE RESOURCES (space separated, one per resource type)</label>
+        <input type="text" id="bnk-available" placeholder="e.g. 3 3 2" style="max-width:300px;">
+      </div>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn btn-purple" onclick="runBanker()">▶ CHECK SAFETY</button>
+      </div>
+    </div>
+
+    <div class="card card-purple" id="banker-results" style="display:none;">
+      <div class="card-title">
+        <span class="dot" style="background:var(--accent2); box-shadow:var(--glow2)"></span>Safety Analysis Result
+      </div>
+      <div id="banker-output"></div>
+      <hr class="divider">
+      <div style="font-size:12px;color:var(--accent2);letter-spacing:1px;margin-bottom:10px;">PROCESS RESOURCE TABLE</div>
+      <div class="process-table-wrap">
+        <table id="banker-combined-table">
+          <thead><tr id="banker-combined-head"></tr></thead>
+          <tbody id="banker-combined-body"></tbody>
+        </table>
+      </div>
+      <div class="steps-log" id="banker-steps"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= MEMORY ALLOCATION ========================= -->
+<div id="tab-memory" class="panel">
+  <div class="container">
+    <div class="section-header">Memory Allocation</div>
+    <div class="section-desc">Simulate contiguous memory allocation strategies: First Fit, Best Fit, and Worst Fit. See which blocks get allocated and measure wasted space.</div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="dot" style="background:var(--accent3); box-shadow:0 0 20px rgba(16,185,129,0.3)"></span>Algorithm & Input
+      </div>
+      <div class="algo-selector">
+        <button class="algo-btn selected" onclick="selectMemAlgo(this,'first')">First Fit</button>
+        <button class="algo-btn" onclick="selectMemAlgo(this,'best')">Best Fit</button>
+        <button class="algo-btn" onclick="selectMemAlgo(this,'worst')">Worst Fit</button>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label>MEMORY BLOCKS (KB, space separated)</label>
+          <input type="text" id="mem-blocks" value="100 500 200 300 600" placeholder="e.g. 100 500 200 300 600">
+        </div>
+        <div>
+          <label>PROCESS SIZES (KB, space separated)</label>
+          <input type="text" id="mem-procs" value="212 417 112 426" placeholder="e.g. 212 417 112 426">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-green" onclick="runMemory()">▶ SIMULATE</button>
+        <button class="btn btn-sm" style="background:var(--surface2);color:var(--text-dim);" onclick="loadMemExample()">LOAD EXAMPLE</button>
+      </div>
+    </div>
+
+    <div class="card card-green" id="memory-results" style="display:none;">
+      <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Memory Block Allocation</div>
+      <div id="memory-visual"></div>
+      <div class="metric-row" id="memory-metrics" style="margin-top:16px;"></div>
+      <div style="overflow-x:auto; margin-top:16px;">
+        <table id="memory-table">
+          <thead>
+            <tr><th>PROCESS</th><th>SIZE (KB)</th><th>ALLOCATED BLOCK</th><th>BLOCK SIZE (KB)</th><th>WASTED (KB)</th><th>STATUS</th></tr>
+          </thead>
+          <tbody id="memory-tbody"></tbody>
+        </table>
+      </div>
+      <div class="steps-log" id="memory-steps"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ========================= FOOTER ========================= -->
+<footer>
+  <div class="container">
+    OS Problems Simulator · IT22401 Operating System Concepts · Sri Venkateswara College of Engineering<br>
+    <span style="color:rgba(100,116,139,0.5)">Regulation 2022 · B.Tech Information Technology</span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
